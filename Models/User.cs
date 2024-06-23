@@ -1,15 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Reddit.Models
 {
-    public class User
+    public class User : IdentityUser
     {
         [Key]
-        public int Id { get; set; }
-        public string Name { get; set; }
 
-        public string Email { get; set; }
+        //public int Id { get; set; }
+
+        //public string Name { get; set; }
+
+        //public string? Email { get; set; }
+        
+        //
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+
+        //
+
         public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
         public virtual ICollection<Community>? SubscribedCommunities { get; set; } = new List<Community>();

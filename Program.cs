@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Reddit;
 using Reddit.Mapper;
+using Reddit.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -65,7 +66,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => {
 builder.Services.AddScoped<TokenService>();
 
 // Add Identity services
-builder.Services.AddIdentityCore<ApplicationUser>(options =>
+builder.Services.AddIdentityCore<User>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.User.RequireUniqueEmail = true;

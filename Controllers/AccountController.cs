@@ -2,7 +2,9 @@ using JwtRoleAuthentication.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 using Reddit;
+using Reddit.Models;
 
 
 namespace JwtRoleAuthentication.Controllers;
@@ -11,11 +13,11 @@ namespace JwtRoleAuthentication.Controllers;
 [Route("/api/[controller]")]
 public class AccountController : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UserManager<User> _userManager;
     private readonly ApplicationDbContext _context;
     private readonly Services.TokenService _tokenService;
 
-    public AccountController(UserManager<Models.ApplicationUser> userManager, ApplicationDbContext context,
+    public AccountController(UserManager<User> userManager, ApplicationDbContext context,
         Services.TokenService tokenService, ILogger<AccountController> logger)
     {
         _userManager = userManager;
@@ -28,18 +30,15 @@ public class AccountController : ControllerBase
     [Route("register")]
     public async Task<IActionResult> Register(RegistrationRequest request)
     {
-        Console.Out.WriteLineAsync("we were before modelstate ");
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        Console.Out.WriteLineAsync("we were after modelstate------------------------------------------------------ ");
+        var user = new User { UserName = request.Username, Email = request.Email, RefreshToken = _tokenService.GenerateRefreshToken(), RefreshTokenExpiryTime = DateTime.Now.AddDays(7) };
+        await Console.Out.WriteLineAsync("user is this : " + user.ToJson());
 
-        var result = await _userManager.CreateAsync(
-            new ApplicationUser { UserName = request.Username, Email = request.Email, RefreshToken = _tokenService.GenerateRefreshToken(), RefreshTokenExpiryTime = DateTime.Now.AddDays(7)},
-            request.Password!
-        );
+        var result = await _userManager.CreateAsync(user, request.Password);
 
         if (result.Succeeded)
         {
@@ -51,7 +50,6 @@ public class AccountController : ControllerBase
         {
             ModelState.AddModelError(error.Code, error.Description);
         }
-
         return BadRequest(ModelState);
     }
 
@@ -91,10 +89,15 @@ public class AccountController : ControllerBase
 
         return Ok(new Models.AuthResponse
         {
+            //Username = userInDb.UserName,
+            //Email = userInDb.Email,
+            //Token = accessToken,
+            //RefreshToken = userInDb.RefreshToken,
             Username = userInDb.UserName,
             Email = userInDb.Email,
             Token = accessToken,
             RefreshToken = userInDb.RefreshToken,
+
         });
     }
 

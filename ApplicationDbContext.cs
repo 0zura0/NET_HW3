@@ -5,19 +5,22 @@ using Reddit.Models;
 
 namespace Reddit
 {
-    public class ApplicationDbContext: IdentityUserContext<ApplicationUser>
+    public class ApplicationDbContext: IdentityUserContext<User>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> dbContextOptions): base(dbContextOptions)
         {
         }
 
         public DbSet<Post> Posts { get; set; }
-        //public DbSet<User> Users { get; set; }
+
+        public DbSet<User> Users { get; set; }
+
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Community> Communities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             modelBuilder.Entity<Community>(entity =>
             {
                 entity.HasOne(c => c.Owner)
@@ -29,6 +32,11 @@ namespace Reddit
                 entity.HasMany(c => c.Subscribers)
                       .WithMany(u => u.SubscribedCommunities);
             });
+
+
+
+            modelBuilder.Entity<User>()
+            .HasKey(u => u.Id);
 
             base.OnModelCreating(modelBuilder);
         }

@@ -20,7 +20,7 @@ namespace Reddit.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAuthor(CreateUserDto createAuthorDto)
         {
-            var author = new JwtRoleAuthentication.Models.ApplicationUser
+            var author = new User
             {
                 UserName = createAuthorDto.Name
             };
@@ -32,7 +32,7 @@ namespace Reddit.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<JwtRoleAuthentication.Models.ApplicationUser>>> GetAuthors()
+        public async Task<ActionResult<IEnumerable<User>>> GetAuthors()
         {
             return await _context.Users.ToListAsync();
         }

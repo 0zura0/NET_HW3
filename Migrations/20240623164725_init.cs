@@ -6,50 +6,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Reddit.Migrations
 {
     /// <inheritdoc />
-    public partial class newAuth : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Communities_Users_OwnerId",
-                table: "Communities");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_CommunityUser_Users_SubscribersId",
-                table: "CommunityUser");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Posts_Users_AuthorId",
-                table: "Posts");
-
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_Users",
-                table: "Users");
-
-            migrationBuilder.RenameTable(
-                name: "Users",
-                newName: "User");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "User",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_User",
-                table: "User",
-                column: "Id");
-
             migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    RefreshToken = table.Column<string>(type: "TEXT", nullable: false),
-                    RefreshTokenExpiryTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RefreshToken = table.Column<string>(type: "TEXT", nullable: true),
+                    RefreshTokenExpiryTime = table.Column<DateTime>(type: "TEXT", nullable: true),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -131,6 +99,102 @@ namespace Reddit.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Communities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OwnerId = table.Column<string>(type: "TEXT", nullable: true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Communities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Communities_AspNetUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CommunityUser",
+                columns: table => new
+                {
+                    SubscribedCommunitiesId = table.Column<int>(type: "INTEGER", nullable: false),
+                    SubscribersId = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CommunityUser", x => new { x.SubscribedCommunitiesId, x.SubscribersId });
+                    table.ForeignKey(
+                        name: "FK_CommunityUser_AspNetUsers_SubscribersId",
+                        column: x => x.SubscribersId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CommunityUser_Communities_SubscribedCommunitiesId",
+                        column: x => x.SubscribedCommunitiesId,
+                        principalTable: "Communities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Posts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Content = table.Column<string>(type: "TEXT", nullable: false),
+                    AuthorId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AuthorId1 = table.Column<string>(type: "TEXT", nullable: true),
+                    Upvotes = table.Column<int>(type: "INTEGER", nullable: false),
+                    Downvotes = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    CommunityId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Posts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Posts_AspNetUsers_AuthorId1",
+                        column: x => x.AuthorId1,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Posts_Communities_CommunityId",
+                        column: x => x.CommunityId,
+                        principalTable: "Communities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Comments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    PostId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Comments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comments_Posts_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Posts",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
                 table: "AspNetUserClaims",
@@ -152,45 +216,35 @@ namespace Reddit.Migrations
                 column: "NormalizedUserName",
                 unique: true);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Communities_User_OwnerId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_PostId",
+                table: "Comments",
+                column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Communities_OwnerId",
                 table: "Communities",
-                column: "OwnerId",
-                principalTable: "User",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+                column: "OwnerId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_CommunityUser_User_SubscribersId",
+            migrationBuilder.CreateIndex(
+                name: "IX_CommunityUser_SubscribersId",
                 table: "CommunityUser",
-                column: "SubscribersId",
-                principalTable: "User",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "SubscribersId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Posts_User_AuthorId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_AuthorId1",
                 table: "Posts",
-                column: "AuthorId",
-                principalTable: "User",
-                principalColumn: "Id");
+                column: "AuthorId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_CommunityId",
+                table: "Posts",
+                column: "CommunityId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Communities_User_OwnerId",
-                table: "Communities");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_CommunityUser_User_SubscribersId",
-                table: "CommunityUser");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Posts_User_AuthorId",
-                table: "Posts");
-
             migrationBuilder.DropTable(
                 name: "AspNetUserClaims");
 
@@ -201,47 +255,19 @@ namespace Reddit.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Comments");
+
+            migrationBuilder.DropTable(
+                name: "CommunityUser");
+
+            migrationBuilder.DropTable(
+                name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "Communities");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_User",
-                table: "User");
-
-            migrationBuilder.DropColumn(
-                name: "Email",
-                table: "User");
-
-            migrationBuilder.RenameTable(
-                name: "User",
-                newName: "Users");
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_Users",
-                table: "Users",
-                column: "Id");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Communities_Users_OwnerId",
-                table: "Communities",
-                column: "OwnerId",
-                principalTable: "Users",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CommunityUser_Users_SubscribersId",
-                table: "CommunityUser",
-                column: "SubscribersId",
-                principalTable: "Users",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Posts_Users_AuthorId",
-                table: "Posts",
-                column: "AuthorId",
-                principalTable: "Users",
-                principalColumn: "Id");
         }
     }
 }
